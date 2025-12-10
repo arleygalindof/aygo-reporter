@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: data-service
+  data:
+    mongodb:
+      host: ${MONGO_HOST:mongodb}
+      port: ${MONGO_PORT:27017}
+      database: ${MONGO_DB:reports}
+      username: ${MONGO_USER:admin}
+      password: ${MONGO_PASSWORD:admin123}
+      authentication-database: admin
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  datasource:
+    url: jdbc:postgresql://postgres:5432/dashboard_data
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  redis:
+    host: ${REDIS_HOST:redis}
+    port: ${REDIS_PORT:6379}
+    timeout: 60000ms
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+    multipart:
+      file-size-threshold: 0
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    mapping:
+      default-view: null
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH0_ISSUER_URI:https://dev-nckl6bnzvs1rz24i.us.auth0.com/}
+          jwk-set-uri: ${AUTH0_JWK_SET_URI:https://dev-nckl6bnzvs1rz24i.us.auth0.com/.well-known/jwks.json}
+
+server:
+  port: 2082
+  servlet:
+    context-path: /api/data
+
+logging:
+  level:
+    root: INFO
+    com.dashboard: DEBUG

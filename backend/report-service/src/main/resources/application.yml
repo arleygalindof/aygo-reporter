@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: report-service
+  data:
+    mongodb:
+      host: ${MONGO_HOST:mongodb}
+      port: ${MONGO_PORT:27017}
+      database: ${MONGO_DB:reports}
+      username: ${MONGO_USER:admin}
+      password: ${MONGO_PASSWORD:admin123}
+      authentication-database: admin
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH0_ISSUER_URI:https://dev-h0b2f1e9.us.auth0.com/}
+          jwk-set-uri: ${AUTH0_JWK_SET_URI:https://dev-h0b2f1e9.us.auth0.com/.well-known/jwks.json}
+
+server:
+  port: ${SERVER_PORT:2084}
+  servlet:
+    context-path: /api/reports
+
+management:
+  server:
+    port: 9090
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    com.dashboard: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

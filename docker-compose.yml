@@ -1,0 +1,235 @@
+version: '3.9'
+
+services:
+  # API Gateway (Nginx)
+  api-gateway:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    container_name: dashboard-api-gateway
+    ports:
+      - "8000:8000"
+    networks:
+      - dashboard-network
+    depends_on:
+      - auth-service
+      - data-service
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "--spider", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL Database
+  postgres:
+    build:
+      context: ./docker/postgres
+      dockerfile: Dockerfile
+    container_name: dashboard-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - ./volumes/postgres_data:/var/lib/postgresql/data
+    networks:
+      - dashboard-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    build:
+      context: ./docker/redis
+      dockerfile: Dockerfile
+    container_name: dashboard-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./volumes/redis_data:/data
+    networks:
+      - dashboard-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:6.0
+    container_name: dashboard-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin123}
+      MONGO_INITDB_DATABASE: ${MONGO_DB:-reports}
+    volumes:
+      - ./volumes/mongo_data:/data/db
+    networks:
+      - dashboard-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    container_name: dashboard-auth-service
+    ports:
+      - "2081:2081"
+    environment:
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN:-}
+      AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID:-}
+      AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET:-}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-this}
+    networks:
+      - dashboard-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "--spider", "http://localhost:2081/api/auth/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Data Service
+  data-service:
+    build:
+      context: ./backend/data-service
+      dockerfile: Dockerfile
+    container_name: dashboard-data-service
+    ports:
+      - "2082:2082"
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_USER: ${MONGO_USER:-admin}
+      MONGO_PASSWORD: ${MONGO_PASSWORD:-admin123}
+      MONGO_DB: ${MONGO_DB:-reports}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    networks:
+      - dashboard-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "--spider", "http://localhost:2082/api/data/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Upload Service (nuevo)
+  upload-service:
+    build:
+      context: ./backend/upload-service
+      dockerfile: Dockerfile
+    container_name: dashboard-upload-service
+    ports:
+      - "2083:2083"
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_USER: ${MONGO_USER:-admin}
+      MONGO_PASSWORD: ${MONGO_PASSWORD:-admin123}
+      MONGO_DB: ${MONGO_DB:-reports}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    networks:
+      - dashboard-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "--spider", "http://localhost:2083/api/upload/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Report Service (nuevo)
+  report-service:
+    build:
+      context: ./backend/report-service
+      dockerfile: Dockerfile
+    container_name: dashboard-report-service
+    ports:
+      - "2084:2084"
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_USER: ${MONGO_USER:-admin}
+      MONGO_PASSWORD: ${MONGO_PASSWORD:-admin123}
+      MONGO_DB: ${MONGO_DB:-reports}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    networks:
+      - dashboard-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "--spider", "http://localhost:2084/api/reports/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "2080:2080"
+    container_name: dashboard-frontend
+    networks:
+      - dashboard-network
+    depends_on:
+      - auth-service
+      - data-service
+      - upload-service
+      - report-service
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "--spider", "http://localhost:2080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  dashboard-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  mongo-data:
+    driver: local

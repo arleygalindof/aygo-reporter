@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: auth-service
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  datasource:
+    url: jdbc:postgresql://postgres:5432/dashboard_auth
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  redis:
+    host: ${REDIS_HOST:redis}
+    port: ${REDIS_PORT:6379}
+    timeout: 60000ms
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH0_ISSUER_URI:https://dev-nckl6bnzvs1rz24i.us.auth0.com/}
+          jwk-set-uri: ${AUTH0_JWK_SET_URI:https://dev-nckl6bnzvs1rz24i.us.auth0.com/.well-known/jwks.json}
+
+server:
+  port: 2081
+  servlet:
+    context-path: /api/auth
+
+logging:
+  level:
+    root: INFO
+    com.dashboard: DEBUG
+
+auth0:
+  domain: ${AUTH0_DOMAIN:dev-nckl6bnzvs1rz24i.us.auth0.com}
+  clientId: ${AUTH0_CLIENT_ID:}
+  clientSecret: ${AUTH0_CLIENT_SECRET:}
+  audience: ${AUTH0_AUDIENCE:https://dashboard-api}
+
+jwt:
+  secret: ${JWT_SECRET:your-secret-key-change-this-in-production}
+  expiration: 3600000

@@ -1,0 +1,10 @@
+target/
+.git/
+.gitignore
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+.DS_Store
+README.md
