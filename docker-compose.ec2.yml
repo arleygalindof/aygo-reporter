@@ -86,6 +86,8 @@ services:
     container_name: aygo-reporter-auth-service
     ports:
       - "2081:2081"
+    volumes:
+      - ./backend/auth-service/target:/app/target:ro
     environment:
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -116,6 +118,8 @@ services:
     container_name: aygo-reporter-data-service
     ports:
       - "2082:2082"
+    volumes:
+      - ./backend/data-service/target:/app/target:ro
     environment:
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
@@ -145,6 +149,8 @@ services:
     container_name: aygo-reporter-upload-service
     ports:
       - "2083:2083"
+    volumes:
+      - ./backend/upload-service/target:/app/target:ro
     environment:
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
@@ -174,6 +180,8 @@ services:
     container_name: aygo-reporter-report-service
     ports:
       - "2084:2084"
+    volumes:
+      - ./backend/report-service/target:/app/target:ro
     environment:
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
