@@ -3,8 +3,8 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# Copy pre-compiled JAR from target directory
-COPY ./target/data-service-1.0.0.jar app.jar
+# Copy pre-compiled JAR
+COPY backend/data-service/target/data-service-1.0.0.jar app.jar
 
 EXPOSE 2082
 
