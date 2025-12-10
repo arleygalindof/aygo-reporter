@@ -398,9 +398,7 @@ export default function Statistics() {
         </div>
       )}
 
-      {noDataMessage && (
-        <div className="mb-4 text-sm text-gray-600">No se encontraron columnas para tipo, prioridad o localidad en este reporte.</div>
-      )}
+      {/* No data message - removed undefined variable */}
 
       {/* Selectores para gráficos dinámicos */}
       {report && (

@@ -3,9 +3,7 @@ version: '3.9'
 # Compose override for EC2 deployment using public ports 80/443
 services:
   api-gateway:
-    build:
-      context: ./docker/nginx
-      dockerfile: Dockerfile
+    image: arleygf/aygo-api-gateway:latest
     container_name: aygo-reporter-api-gateway
     ports:
       - "80:8000"      # HTTP
@@ -80,14 +78,10 @@ services:
       retries: 5
 
   auth-service:
-    build:
-      context: ./backend/auth-service
-      dockerfile: Dockerfile
+    image: arleygf/aygo-auth-service:latest
     container_name: aygo-reporter-auth-service
     ports:
       - "2081:2081"
-    volumes:
-      - ./backend/auth-service/target:/app/target:ro
     environment:
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -112,14 +106,10 @@ services:
       start_period: 30s
 
   data-service:
-    build:
-      context: ./backend/data-service
-      dockerfile: Dockerfile
+    image: arleygf/aygo-data-service:latest
     container_name: aygo-reporter-data-service
     ports:
       - "2082:2082"
-    volumes:
-      - ./backend/data-service/target:/app/target:ro
     environment:
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
@@ -143,14 +133,10 @@ services:
       start_period: 30s
 
   upload-service:
-    build:
-      context: ./backend/upload-service
-      dockerfile: Dockerfile
+    image: arleygf/aygo-upload-service:latest
     container_name: aygo-reporter-upload-service
     ports:
       - "2083:2083"
-    volumes:
-      - ./backend/upload-service/target:/app/target:ro
     environment:
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
@@ -174,14 +160,10 @@ services:
       start_period: 30s
 
   report-service:
-    build:
-      context: ./backend/report-service
-      dockerfile: Dockerfile
+    image: arleygf/aygo-report-service:latest
     container_name: aygo-reporter-report-service
     ports:
       - "2084:2084"
-    volumes:
-      - ./backend/report-service/target:/app/target:ro
     environment:
       MONGO_HOST: mongodb
       MONGO_PORT: 27017
@@ -205,9 +187,7 @@ services:
       start_period: 30s
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: arleygf/aygo-frontend:latest
     container_name: aygo-reporter-frontend
     # Expose if you want to bypass api-gateway; otherwise rely on gateway
     # ports:
